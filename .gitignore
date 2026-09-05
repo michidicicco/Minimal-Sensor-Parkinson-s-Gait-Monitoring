@@ -1,0 +1,64 @@
+# =========================
+# WearGait-PD raw data
+# =========================
+PD Participants/
+Clinical_Metadata/
+
+# Synapse / credentials / secrets
+.env
+.env.*
+.synapseConfig
+*.pat
+*token*
+*secret*
+credentials.*
+
+# =========================
+# Generated analysis outputs
+# =========================
+project_audit/
+project_cohort/
+project_cohort_v2/
+project_reference_gait/
+project_reference_gait_refined/
+project_reference_analysis/
+project_clinical_audit/
+project_clinical_linkage/
+project_imu_features/
+project_sensor_screen/
+project_sensor_validation/
+project_personalized_models/
+project_clinical_secondary/
+
+# Intentionally NOT ignoring project_final_results/
+# so selected aggregate tables/figures can be committed after manual review.
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# =========================
+# IDE / OS
+# =========================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+~$*
