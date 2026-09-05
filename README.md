@@ -924,31 +924,6 @@ Several safeguards are built into the analysis:
 
 ---
 
-# Recommended Public Outputs
-
-The full generated analysis directories can remain local.
-
-For a public GitHub repository, a small curated set of aggregate, non-identifiable outputs can be placed in:
-
-```text
-results/
-figures/
-```
-
-Examples include:
-
-- final sensor-screen ranking
-- validation architecture summary
-- Pareto frontier table
-- final reference-target table
-- sensor-ablation figure
-- validation tradeoff figure
-- within-person modeling figure
-
-Before publishing any generated file, verify that it contains no participant-level identifiers or restricted dataset content.
-
----
-
 # `.gitignore`
 
 The repository is configured to ignore:
@@ -1025,9 +1000,6 @@ If you use or build on this code, please cite the repository using the metadata 
 CITATION.cff
 ```
 
-A formal manuscript citation can be added here once the associated paper is published.
-
----
 
 # License
 
