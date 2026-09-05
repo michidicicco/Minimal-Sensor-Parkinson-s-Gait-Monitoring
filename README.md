@@ -2,7 +2,7 @@
 
 A reproducible wearable-biomechanics pipeline for evaluating how much longitudinal gait-change information can be preserved using reduced IMU sensor configurations in Parkinson's disease.
 
-This project uses the longitudinal **WearGait-PD** dataset to compare single- and multi-sensor wearable architectures against synchronized instrumented-walkway gait measures. The primary engineering goal is to identify a minimal wearable configuration that preserves meaningful within-person gait changes while reducing hardware burden.
+This project uses the longitudinal WearGait-PD dataset to compare single- and multi-sensor wearable architectures against synchronized instrumented-walkway gait measures. The primary engineering goal is to identify a minimal wearable configuration that preserves meaningful within-person gait changes while reducing hardware burden.
 
 ## Research Question
 
