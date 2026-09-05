@@ -1,53 +1,104 @@
 # Minimal-Sensor Parkinson's Gait Monitoring
 
-A reproducible wearable-biomechanics pipeline for evaluating how much longitudinal gait-change information can be preserved using reduced IMU sensor configurations in Parkinson's disease.
+**Longitudinal wearable biomechanics, sensor ablation, and within-person change modeling in Parkinson's disease**
 
-This project uses the longitudinal WearGait-PD dataset to compare single- and multi-sensor wearable architectures against synchronized instrumented-walkway gait measures. The primary engineering goal is to identify a minimal wearable configuration that preserves meaningful within-person gait changes while reducing hardware burden.
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Research Question
+## Overview
 
-**What is the minimum wearable IMU architecture that preserves longitudinal gait-change information in Parkinson's disease?**
+Wearable inertial measurement units (IMUs) can provide objective gait measurements in Parkinson's disease (PD), but large multi-sensor systems increase hardware burden and may be less practical for repeated longitudinal monitoring.
 
-Primary gait targets:
+This project evaluates whether **reduced wearable sensor configurations can preserve meaningful within-person gait-change information over time**.
 
-- Step length — spatial domain
-- Cadence — rhythmic domain
-- Swing time — gait-cycle phase
+Using longitudinal **WearGait-PD** data, the analysis compares 18 pre-specified wearable sensor architectures against synchronized instrumented-walkway reference measures. The pipeline includes reference gait extraction, quality control, IMU feature engineering, sensor ablation, participant-grouped machine learning, model sensitivity analysis, Pareto evaluation, within-person normalization, and secondary clinical analyses.
 
-The primary comparison uses a common participant cohort so every candidate body-sensor configuration is evaluated on the same individuals.
+The central engineering question is:
 
-## Study Design
+> **What is the minimum wearable IMU architecture that preserves longitudinal gait-change information in Parkinson's disease?**
 
-- Longitudinal repeated walking assessments
-- Primary task: `selfpace_mat`
-- Straight walking only: `GeneralEvent == "Walk"`
-- 11 body-mounted IMUs:
-  - Forehead
-  - Xiphoid
-  - Lower back
-  - Bilateral wrists
-  - Bilateral lateral shanks
-  - Bilateral dorsal feet
-  - Bilateral ankles
-- 2 insole inertial units retained as exploratory sensors
-- Instrumented pressure walkway used as the reference system
-- Primary reference cohort: 42 paired participants
-- Common body-sensor cohort for the fair sensor-ablation screen: 38 participants
-- 18 wearable sensor configurations evaluated
-- Models:
-  - Elastic Net
-  - Random Forest sensitivity analysis
-- Participant-grouped cross-validation
-- Longitudinal endpoint: session 2 − session 1
+The design principle that emerged from the final analysis is:
 
-> This repository evaluates preservation of longitudinal gait change. It does **not** claim that the observed gait changes represent clinical Parkinson's disease progression.
+> **Maximize longitudinal information per sensor.**
 
 ---
 
-## Repository Structure
+## Project Highlights
+
+- Longitudinal repeated walking assessments
+- 42 participants with valid paired reference gait data
+- 38 participants in the common cohort used for the primary fair sensor comparison
+- 11 body-mounted IMU locations
+- 2 exploratory insole inertial units
+- 18 wearable sensor configurations evaluated
+- Instrumented pressure walkway used as the reference system
+- Three frozen longitudinal gait targets:
+  - **Step length** — spatial domain
+  - **Cadence** — rhythmic domain
+  - **Swing time** — gait-cycle phase
+- Elastic Net as the primary linear model
+- Random Forest as a nonlinear sensitivity model
+- Participant-grouped repeated cross-validation
+- Bootstrap uncertainty analysis
+- Pareto analysis of performance versus sensor burden
+- Within-person normalized change modeling
+- Secondary baseline clinical analyses
+
+---
+
+## Main Findings
+
+The final analysis supports several engineering-level conclusions:
+
+- **Single-sensor distal-leg architectures remained competitive with multi-sensor systems.**
+- Adding more sensors did **not** consistently improve longitudinal gait-change performance.
+- Exact optimal placement was **model-dependent** rather than universal.
+- **Cadence** was the most consistently preserved longitudinal gait domain.
+- **Step-length change** was more difficult to estimate.
+- Within-person normalization was **not universally superior**, but showed selective benefit for **ankle-based step-length estimation**.
+- Pareto analysis favored compact sensor architectures that balanced predictive performance with hardware burden.
+
+These results support an outcome-specific approach to wearable design rather than assuming that more sensors automatically produce better longitudinal monitoring.
+
+---
+
+## Important Interpretation Guardrail
+
+This repository evaluates **preservation of longitudinal gait change**.
+
+It does **not** establish that the observed gait changes represent clinical Parkinson's disease progression.
+
+The available clinical linkage used baseline clinical information only. A linked Version 2 follow-up clinical table was not available for calculation of longitudinal MDS-UPDRS change.
+
+Supported language includes:
+
+- longitudinal gait change
+- longitudinal gait-change preservation
+- minimal wearable architecture
+- sensor-ablation analysis
+- within-person change modeling
+- hardware-performance tradeoff
+
+This analysis does **not** support claims of:
+
+- direct prediction of Parkinson's disease progression
+- longitudinal MDS-UPDRS progression
+- universal superiority of one left/right sensor location
+- clinical diagnostic performance
+
+---
+
+# Repository Structure
 
 ```text
-WearGait_PD_Longitudinal/
+Minimal-Sensor-Parkinson-s-Gait-Monitoring/
+│
+├── README.md
+├── requirements.txt
+├── .gitignore
+├── LICENSE
+├── CITATION.cff
+├── run_pipeline.ps1
 │
 ├── scripts/
 │   ├── 01_audit_weargait_longitudinal.py
@@ -64,124 +115,218 @@ WearGait_PD_Longitudinal/
 │   ├── 11_secondary_clinical_analysis.py
 │   └── 12_compile_final_results.py
 │
-├── PD Participants/
-├── Clinical_Metadata/
-│
-├── project_audit/
-├── project_cohort_v2/
-├── project_reference_gait/
-├── project_reference_gait_refined/
-├── project_reference_analysis/
-├── project_clinical_audit/
-├── project_clinical_linkage/
-├── project_imu_features/
-├── project_sensor_screen/
-├── project_sensor_validation/
-├── project_personalized_models/
-├── project_clinical_secondary/
-└── project_final_results/
+├── results/              # Optional public aggregate outputs
+└── figures/              # Optional public figures
 ```
 
-Raw WearGait-PD data are **not included** in this repository. Users should obtain the dataset from the official WearGait-PD/Synapse source and follow its access and data-use requirements.
+The raw WearGait-PD dataset is **not included** in this repository.
 
 ---
 
-# Analysis Scripts
+# Data
 
-## 01 — Dataset Audit
+## WearGait-PD
+
+The analysis uses longitudinal WearGait-PD data containing synchronized wearable-sensor and instrumented-walkway recordings.
+
+The synchronized system includes:
+
+### Body-mounted IMUs
+
+Eleven body-mounted IMU locations:
+
+- Forehead
+- Xiphoid
+- Lower back
+- Left wrist
+- Right wrist
+- Left lateral shank
+- Right lateral shank
+- Left dorsal foot
+- Right dorsal foot
+- Left ankle
+- Right ankle
+
+### Exploratory insole inertial units
+
+- Left insole
+- Right insole
+
+The insole inertial units are retained for exploratory feature extraction but are excluded from the primary body-sensor hardware screen.
+
+### Reference system
+
+An instrumented pressure walkway provides synchronized gait-reference measurements used to derive temporal and spatial gait outcomes.
+
+### Primary task
+
+The primary analysis uses:
+
+```text
+selfpace_mat
+```
+
+Only straight-walking segments are included:
+
+```text
+GeneralEvent == "Walk"
+```
+
+Turning trials are not part of the primary sensor-ablation analysis.
+
+---
+
+# Analysis Pipeline
+
+The full workflow is:
+
+```text
+Dataset audit
+    ↓
+Paired longitudinal cohort
+    ↓
+Reference gait extraction
+    ↓
+Reference QC refinement
+    ↓
+Longitudinal reference analysis
+    ↓
+IMU feature extraction
+    ↓
+Primary sensor-ablation screen
+    ↓
+Shortlisted architecture validation
+    ↓
+Within-person change modeling
+    ↓
+Secondary clinical analysis
+    ↓
+Final analysis freeze
+```
+
+Clinical metadata auditing and linkage are performed in parallel before the secondary clinical analyses.
+
+---
+
+# Scripts
+
+## 01 — Audit the Longitudinal Dataset
 
 ### `01_audit_weargait_longitudinal.py`
 
-Performs an initial audit of the downloaded WearGait-PD longitudinal dataset.
+Performs the initial dataset audit.
 
 Main tasks:
 
-- Inventories downloaded files
-- Detects participant/session/task structure
-- Summarizes available CSV files and columns
-- Identifies candidate clinical/metadata files
-- Creates participant/session and task-level summaries
+- inventories downloaded files
+- detects participant, session, and task structure
+- inventories CSV columns
+- summarizes participant/session coverage
+- identifies candidate clinical or metadata files
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_audit/
-├── file_inventory.csv
-├── csv_inventory.csv
-├── participant_session_summary.csv
-├── participant_task_summary.csv
-├── task_summary.csv
-├── column_inventory.csv
-├── candidate_clinical_files.csv
-└── audit_summary.txt
+```
+
+Typical outputs include:
+
+```text
+file_inventory.csv
+csv_inventory.csv
+participant_session_summary.csv
+participant_task_summary.csv
+task_summary.csv
+column_inventory.csv
+candidate_clinical_files.csv
+audit_summary.txt
 ```
 
 ---
 
-## 02 — Build the Paired Longitudinal Cohort
+## 02 — Build the Corrected Paired Longitudinal Cohort
 
 ### `02_build_paired_longitudinal_cohort_v2.py`
 
-Builds the corrected Version 2 longitudinal cohort.
+Builds the corrected Version 2 cohort used by the downstream analysis.
 
-Important features:
+Key features:
 
-- Recognizes both `NLS###` and `WPD###` participant IDs
-- Uses `selfpace_mat` as the primary synchronized straight-walking file
-- Does not globally exclude a participant because one sensor is missing
-- Tracks paired availability separately for each wearable location
-- Defines primary reference eligibility from paired sessions and usable walkway data
+- recognizes both `NLS###` and `WPD###` participant IDs
+- uses `selfpace_mat` as the primary synchronized walking file
+- evaluates reference-data usability
+- tracks paired sensor availability separately for each location
+- does not globally remove a participant because one non-required sensor is missing
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_cohort_v2/
-├── session_file_map.csv
-├── selfpace_mat_session_qc.csv
-├── paired_longitudinal_cohort.csv
-├── paired_sensor_availability.csv
-├── sensor_availability_summary.csv
-└── cohort_summary.txt
+```
+
+Outputs include:
+
+```text
+session_file_map.csv
+selfpace_mat_session_qc.csv
+paired_longitudinal_cohort.csv
+paired_sensor_availability.csv
+sensor_availability_summary.csv
+cohort_summary.txt
 ```
 
 ---
 
-## 03 — Extract Instrumented-Walkway Reference Gait Metrics
+## 03 — Extract Reference Gait Metrics
 
 ### `03_extract_reference_gait_metrics.py`
 
-Extracts reference spatiotemporal gait measures from the synchronized pressure walkway.
+Derives instrumented-walkway spatiotemporal gait measures from synchronized walking trials.
 
-Reference construction includes:
+Metrics include:
 
-- Straight walking only
-- Pressure-walkway foot-contact events
-- Spatial footfall position
-- Step and stride timing
-- Step and stride length
-- Stance and swing time
-- Cadence
-- Gait speed
-- Variability measures
-- Bilateral asymmetry measures
+- gait speed
+- cadence
+- step time
+- stride time
+- stance time
+- swing time
+- double-support percentage
+- step length
+- stride length
+- variability metrics
+- bilateral asymmetry metrics
 
-Primary outputs:
+Reference construction uses:
+
+- pressure-walkway left/right foot contacts
+- longitudinal footfall position
+- straight-walking segments only
+- exclusion of annotation-boundary partial contacts
+
+Primary output directory:
 
 ```text
 project_reference_gait/
-├── session_reference_gait_metrics.csv
-├── reference_metric_qc.csv
-├── longitudinal_reference_changes.csv
-└── reference_summary.txt
+```
+
+Outputs include:
+
+```text
+session_reference_gait_metrics.csv
+reference_metric_qc.csv
+longitudinal_reference_changes.csv
+reference_summary.txt
 ```
 
 ---
 
-## 03b — Refine Reference QC
+## 03b — Refine Reference Quality Control
 
 ### `03b_refine_reference_qc.py`
 
-Separates reference-quality requirements into two pre-specified tiers rather than using one all-or-nothing QC threshold.
+Creates two pre-specified QC tiers so simple mean gait measures are not subjected to unnecessarily strict variability requirements.
 
 ### CORE QC
 
@@ -189,9 +334,9 @@ Used for mean spatiotemporal gait measures.
 
 Requires:
 
-- At least 2 usable straight-walking bouts
-- At least 5 valid steps
-- At least 3 valid strides
+- at least 2 usable straight-walking bouts
+- at least 5 valid steps
+- at least 3 valid strides
 
 ### STRICT QC
 
@@ -199,20 +344,25 @@ Used for variability and asymmetry measures.
 
 Requires:
 
-- At least 2 usable straight-walking bouts
-- At least 6 valid steps
-- At least 4 valid strides
+- at least 2 usable straight-walking bouts
+- at least 6 valid steps
+- at least 4 valid strides
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_reference_gait_refined/
-├── reference_metric_eligibility.csv
-├── paired_reference_eligibility.csv
-├── longitudinal_reference_changes_core.csv
-├── longitudinal_reference_changes_strict.csv
-├── qc_sensitivity_summary.csv
-└── refined_reference_summary.txt
+```
+
+Outputs include:
+
+```text
+reference_metric_eligibility.csv
+paired_reference_eligibility.csv
+longitudinal_reference_changes_core.csv
+longitudinal_reference_changes_strict.csv
+qc_sensitivity_summary.csv
+refined_reference_summary.txt
 ```
 
 ---
@@ -221,32 +371,37 @@ project_reference_gait_refined/
 
 ### `04_analyze_longitudinal_reference.py`
 
-Characterizes session-2 minus session-1 changes in the reference gait measures before any IMU sensor-ablation modeling.
+Characterizes session-2 minus session-1 changes before any wearable-sensor modeling.
 
 Analyses include:
 
-- Baseline and follow-up descriptive statistics
-- Mean and median longitudinal change
-- Bootstrap 95% confidence intervals
-- Paired standardized effect size
-- Paired t-tests
-- Wilcoxon signed-rank tests
+- baseline and follow-up descriptive statistics
+- mean and median change
+- bootstrap 95% confidence intervals
+- paired standardized effect size
+- paired t-test
+- Wilcoxon signed-rank test
 - Benjamini-Hochberg FDR correction
-- Direction-of-change consistency
-- Paired-change visualizations
+- direction-of-change consistency
+- paired-change plots
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_reference_analysis/
-├── core_longitudinal_stats.csv
-├── strict_longitudinal_stats.csv
-├── longitudinal_metric_ranking.csv
-├── longitudinal_analysis_summary.txt
-└── figures/
 ```
 
-The final frozen primary targets are:
+Outputs include:
+
+```text
+core_longitudinal_stats.csv
+strict_longitudinal_stats.csv
+longitudinal_metric_ranking.csv
+longitudinal_analysis_summary.txt
+figures/
+```
+
+The frozen primary targets used downstream are:
 
 ```text
 step_length_m
@@ -260,28 +415,27 @@ swing_time_s
 
 ### `05_audit_clinical_metadata.py`
 
-Searches downloaded metadata files for clinically relevant variables.
+Searches available non-task metadata files for clinically relevant variables.
 
 Examples include:
 
 - MDS-UPDRS
 - Hoehn & Yahr
-- Medication state
+- medication state
+- medication timing
 - DBS status
-- Disease duration
-- Age
-- Sex
-- Visit/session timing
+- disease duration
+- age
+- sex
+- visit/session timing
 
-This stage was used to determine what clinical data were available before making any clinical-progression claims.
-
-Primary outputs are written to:
+Primary output directory:
 
 ```text
 project_clinical_audit/
 ```
 
-including metadata inventories, candidate rankings, previews, and a clinical audit summary.
+This stage is used to determine what clinical variables can be linked without making unsupported longitudinal progression claims.
 
 ---
 
@@ -289,35 +443,37 @@ including metadata inventories, candidate rankings, previews, and a clinical aud
 
 ### `06_build_baseline_clinical_linkage.py`
 
-Links the Version 1 PD demographic/clinical table to the Version 2 longitudinal cohort.
+Links the Version 1 PD demographic/clinical table with the Version 2 longitudinal participant IDs.
 
-Important implementation detail:
+The source clinical CSV uses a two-row header, so the script reads it using:
 
 ```python
 pd.read_csv(..., header=1)
 ```
 
-The clinical table uses a two-row header, with the second row containing the actual column names.
+This script:
 
-This script also:
+- normalizes participant IDs
+- links baseline clinical variables
+- audits clinical-field completeness
+- calculates MDS-UPDRS Part III totals when item-level data are complete
+- preserves medication-state information
+- flags CORE and STRICT cohort membership
 
-- Normalizes participant IDs
-- Audits clinical-field completeness
-- Calculates MDS-UPDRS Part III totals when item-level data are complete
-- Preserves medication-state information
-- Links baseline clinical variables to CORE and STRICT gait cohorts
-
-Primary outputs:
+Primary output directory:
 
 ```text
 project_clinical_linkage/
-├── baseline_clinical_linkage.csv
-├── clinical_completeness.csv
-├── mds_updrs_part3_item_qc.csv
-└── clinical_linkage_summary.txt
 ```
 
-Only baseline clinical information was available for this analysis. No follow-up clinical table was used to calculate longitudinal MDS-UPDRS change.
+Outputs include:
+
+```text
+baseline_clinical_linkage.csv
+clinical_completeness.csv
+mds_updrs_part3_item_qc.csv
+clinical_linkage_summary.txt
+```
 
 ---
 
@@ -325,21 +481,19 @@ Only baseline clinical information was available for this analysis. No follow-up
 
 ### `07_extract_imu_features.py`
 
-Extracts orientation-robust IMU features from straight-walking bouts.
+Extracts device-oriented features from each wearable sensor during straight walking.
 
-Body sensors use:
+Body-mounted IMUs use:
 
-- Free-acceleration magnitude
-- Gyroscope magnitude
+- free-acceleration magnitude
+- gyroscope magnitude
 
-The two insole IMUs are treated as exploratory because their channel structure differs from the body-mounted IMUs.
+Features are designed to be relatively orientation-robust.
 
-Features per sensor include:
+### Acceleration features
 
-```text
-Acceleration
 - RMS
-- SD
+- standard deviation
 - IQR
 - 95th percentile
 - jerk RMS
@@ -347,33 +501,38 @@ Acceleration
 - spectral entropy
 - periodicity
 
-Gyroscope
+### Gyroscope features
+
 - RMS
-- SD
+- standard deviation
 - IQR
 - 95th percentile
 - jerk RMS
 - dominant gait-band frequency
 - spectral entropy
 - periodicity
-```
 
-Processing principles:
+Processing rules:
 
-- Straight walking only
-- Continuous walking bouts analyzed independently
-- Session feature = median across usable bouts
-- Sensor-session QC requires at least 2 usable bouts
+- straight walking only
+- continuous walking bouts processed independently
+- session value = median across usable bouts
+- sensor-session QC requires at least 2 usable bouts
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_imu_features/
-├── session_imu_features.csv
-├── sensor_session_qc.csv
-├── paired_imu_feature_changes.csv
-├── paired_sensor_feature_availability.csv
-└── imu_feature_summary.txt
+```
+
+Outputs include:
+
+```text
+session_imu_features.csv
+sensor_session_qc.csv
+paired_imu_feature_changes.csv
+paired_sensor_feature_availability.csv
+imu_feature_summary.txt
 ```
 
 ---
@@ -382,43 +541,84 @@ project_imu_features/
 
 ### `08_screen_sensor_configurations.py`
 
-Performs the primary fair head-to-head sensor comparison.
+Performs the primary fair head-to-head sensor-ablation analysis.
 
-The script evaluates 18 pre-specified body-IMU configurations against the three frozen gait targets.
+The three frozen reference targets are:
 
-Key safeguards:
+```text
+step_length_m
+cadence_steps_min
+swing_time_s
+```
 
-- Same common 38-participant cohort for every configuration
-- Participant-grouped repeated cross-validation
-- Session 1 and session 2 from the same participant remain in the same fold
-- Scaling and imputation are performed inside training folds
-- Elastic Net hyperparameters are selected inside training data
-- No clinical variables are used as model inputs
-- Insoles are excluded from the primary hardware screen
+### Primary design safeguards
 
-Performance metrics include:
+- paired CORE reference cohort only
+- common body-sensor cohort for fair comparison
+- same participants used for every screened architecture
+- participant-grouped repeated cross-validation
+- both sessions from the same participant remain in the same fold
+- preprocessing is fit within training folds
+- Elastic Net tuning is performed within training data
+- clinical variables are excluded
+- insole sensors are excluded from the primary hardware comparison
 
-- Concordance correlation coefficient (CCC)
+### Sensor architectures
+
+The 18 screened configurations include:
+
+#### Eleven single-sensor configurations
+
+1. Forehead
+2. Xiphoid
+3. Lower back
+4. Left wrist
+5. Right wrist
+6. Left lateral shank
+7. Right lateral shank
+8. Left dorsal foot
+9. Right dorsal foot
+10. Left ankle
+11. Right ankle
+
+#### Seven multi-sensor configurations
+
+12. Bilateral wrists  
+13. Bilateral lateral shanks  
+14. Bilateral dorsal feet  
+15. Bilateral ankles  
+16. Lower back + left ankle  
+17. Lower back + right ankle  
+18. Lower back + bilateral ankles  
+
+### Performance metrics
+
+- concordance correlation coefficient (CCC)
 - Pearson correlation
 - MAE
 - RMSE
 - normalized RMSE
 - direction-of-change agreement
 
-A descriptive screening score is used only to rank candidate architectures for follow-up validation.
+A descriptive screening score is used only to rank configurations for validation.
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_sensor_screen/
-├── sensor_configuration_definitions.csv
-├── common_cohort_subjects.csv
-├── cv_session_predictions.csv
-├── cv_longitudinal_predictions.csv
-├── target_configuration_performance.csv
-├── configuration_summary.csv
-├── sensor_screen_ranking.csv
-└── sensor_screen_summary.txt
+```
+
+Outputs include:
+
+```text
+sensor_configuration_definitions.csv
+common_cohort_subjects.csv
+cv_session_predictions.csv
+cv_longitudinal_predictions.csv
+target_configuration_performance.csv
+configuration_summary.csv
+sensor_screen_ranking.csv
+sensor_screen_summary.txt
 ```
 
 ---
@@ -429,7 +629,7 @@ project_sensor_screen/
 
 Re-tests shortlisted configurations using each architecture's maximum available CORE cohort.
 
-Shortlisted architectures include:
+Shortlisted configurations:
 
 ```text
 Single_L_Ankle
@@ -449,27 +649,32 @@ Models:
 
 This stage evaluates:
 
-- Robustness to model family
-- Maximum available sample size
-- Bootstrap uncertainty
-- Hardware burden versus performance
-- Pareto-efficient configurations
-- Target-specific specialists
+- maximum available participant sample
+- model-family robustness
+- bootstrap uncertainty
+- target-specific performance
+- sensor burden
+- Pareto efficiency
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_sensor_validation/
-├── shortlisted_configuration_definitions.csv
-├── max_cohort_subjects.csv
-├── final_cv_session_predictions.csv
-├── final_longitudinal_predictions.csv
-├── final_validation_performance.csv
-├── bootstrap_uncertainty.csv
-├── architecture_summary.csv
-├── pareto_frontier.csv
-├── target_specialists.csv
-└── final_validation_summary.txt
+```
+
+Outputs include:
+
+```text
+shortlisted_configuration_definitions.csv
+max_cohort_subjects.csv
+final_cv_session_predictions.csv
+final_longitudinal_predictions.csv
+final_validation_performance.csv
+bootstrap_uncertainty.csv
+architecture_summary.csv
+pareto_frontier.csv
+target_specialists.csv
+final_validation_summary.txt
 ```
 
 ---
@@ -478,13 +683,13 @@ project_sensor_validation/
 
 ### `10_compare_personalized_change_models.py`
 
-Tests whether within-person change modeling improves longitudinal gait-change estimation.
+Tests whether direct within-person change modeling improves longitudinal estimation compared with population absolute-session modeling.
 
-Three strategies are compared:
+Three modeling strategies are compared.
 
 ### A. Population Absolute
 
-Predict each gait measure separately at session 1 and session 2, then calculate:
+Predict session 1 and session 2 separately:
 
 ```text
 predicted change = predicted session 2 - predicted session 1
@@ -492,7 +697,7 @@ predicted change = predicted session 2 - predicted session 1
 
 ### B. Direct Raw Delta
 
-Predict reference longitudinal change directly from:
+Predict reference change directly from:
 
 ```text
 IMU session 2 - IMU session 1
@@ -500,10 +705,11 @@ IMU session 2 - IMU session 1
 
 ### C. Direct Normalized Delta
 
-Uses symmetric within-person normalization:
+Use symmetric within-person normalized feature change:
 
 ```text
-2 × (session2 - session1) / (|session1| + |session2| + epsilon)
+2 × (session2 - session1) /
+(|session1| + |session2| + epsilon)
 ```
 
 Models:
@@ -511,26 +717,31 @@ Models:
 - Elastic Net
 - Random Forest
 
-Comparison metrics:
+Evaluation includes:
 
 - CCC
 - Pearson r
 - normalized RMSE
 - direction agreement
-- participant-bootstrap paired improvement versus Population Absolute
+- participant-bootstrap paired improvement relative to Population Absolute
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_personalized_models/
-├── personalized_cv_predictions.csv
-├── personalized_model_performance.csv
-├── paired_improvement_bootstrap.csv
-├── modeling_strategy_summary.csv
-└── personalized_model_summary.txt
 ```
 
-The supported benefit of within-person normalization was selective rather than universal and was concentrated in ankle-based step-length estimation.
+Outputs include:
+
+```text
+personalized_cv_predictions.csv
+personalized_model_performance.csv
+paired_improvement_bootstrap.csv
+modeling_strategy_summary.csv
+personalized_model_summary.txt
+```
+
+The final analysis found that personalization was **selectively useful**, with supported benefits concentrated in ankle-based step-length estimation.
 
 ---
 
@@ -538,28 +749,31 @@ The supported benefit of within-person normalization was selective rather than u
 
 ### `11_secondary_clinical_analysis.py`
 
-Uses available **baseline** clinical information for secondary context.
+Uses available baseline clinical variables for secondary interpretation.
 
-Analyses include:
+Questions include:
 
-1. Baseline clinical construct validity  
-2. Baseline severity versus subsequent gait change  
-3. Descriptive medication/DBS/sex sensitivity analyses  
+1. Are baseline gait measures associated with baseline motor severity?
+2. Is baseline severity associated with subsequent gait change?
+3. Do longitudinal gait changes differ descriptively by baseline medication, DBS, or sex groups?
 
-Primary outputs:
+Primary output directory:
 
 ```text
 project_clinical_secondary/
-├── baseline_construct_validity.csv
-├── baseline_severity_vs_longitudinal_change.csv
-├── categorical_longitudinal_descriptives.csv
-├── clinical_analysis_dataset.csv
-└── clinical_secondary_summary.txt
 ```
 
-Important limitation:
+Outputs include:
 
-There is no linked Version 2 follow-up clinical table in this analysis, so this script does not calculate longitudinal MDS-UPDRS change and does not establish clinical disease progression.
+```text
+baseline_construct_validity.csv
+baseline_severity_vs_longitudinal_change.csv
+categorical_longitudinal_descriptives.csv
+clinical_analysis_dataset.csv
+clinical_secondary_summary.txt
+```
+
+These analyses are secondary and do not alter the primary sensor-only architecture conclusion.
 
 ---
 
@@ -567,34 +781,102 @@ There is no linked Version 2 follow-up clinical table in this analysis, so this 
 
 ### `12_compile_final_results.py`
 
-Collects the completed outputs from the reference, sensor-ablation, validation, personalized-modeling, and clinical analyses into a manuscript-ready final-results package.
+Compiles completed outputs into a manuscript-ready final-results package.
 
-This script does **not** fit new models or perform new hypothesis tests.
+This script:
 
-Primary outputs:
+- does not fit new models
+- does not run new hypothesis tests
+- collects already completed analyses
+- creates final summary tables
+- creates publication-oriented figures
+- writes the final analysis-freeze summary
+
+Primary output directory:
 
 ```text
 project_final_results/
-├── analysis_freeze_summary.txt
-├── table_1_reference_targets.csv
-├── table_2_primary_sensor_screen.csv
-├── table_3_validation_architectures.csv
-├── table_4_personalization_supported_effects.csv
-├── table_5_clinical_secondary.csv
-├── figure_1_reference_target_changes.png
-├── figure_2_primary_sensor_screen.png
-├── figure_3_validation_pareto.png
-├── figure_4_personalization_step_length.png
-└── figure_5_clinical_correlations.png
 ```
 
-This folder represents the frozen analysis used for manuscript interpretation.
+Outputs include:
+
+```text
+analysis_freeze_summary.txt
+table_1_reference_targets.csv
+table_2_primary_sensor_screen.csv
+table_3_validation_architectures.csv
+table_4_personalization_supported_effects.csv
+table_5_clinical_secondary.csv
+figure_1_reference_target_changes.png
+figure_2_primary_sensor_screen.png
+figure_3_validation_pareto.png
+figure_4_personalization_step_length.png
+figure_5_clinical_correlations.png
+```
 
 ---
 
-# Recommended Execution Order
+# Quick Start
 
-Run scripts from the project root or from the `scripts` directory in numerical order:
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/michidicco/Minimal-Sensor-Parkinson-s-Gait-Monitoring.git
+cd Minimal-Sensor-Parkinson-s-Gait-Monitoring
+```
+
+## 2. Create a virtual environment
+
+### Windows PowerShell
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+## 3. Install dependencies
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Core dependencies are:
+
+```text
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+```
+
+## 4. Add the WearGait-PD data locally
+
+The expected local project structure includes:
+
+```text
+PD Participants/
+Clinical_Metadata/
+```
+
+These directories are ignored by Git and should **not** be committed.
+
+## 5. Run the pipeline
+
+On Windows PowerShell:
+
+```powershell
+.\run_pipeline.ps1
+```
+
+The runner executes the analysis scripts in numerical order and stops if a stage fails.
+
+---
+
+# Manual Execution
+
+Scripts can also be run individually:
 
 ```powershell
 python scripts\01_audit_weargait_longitudinal.py
@@ -612,13 +894,13 @@ python scripts\11_secondary_clinical_analysis.py
 python scripts\12_compile_final_results.py
 ```
 
-The core engineering pipeline is:
+The core engineering sequence is:
 
 ```text
 01 → 02 → 03 → 03b → 04 → 07 → 08 → 09 → 10 → 12
 ```
 
-Clinical context is added through:
+The clinical-context branch is:
 
 ```text
 05 → 06 → 11 → 12
@@ -626,111 +908,96 @@ Clinical context is added through:
 
 ---
 
-# Python Dependencies
+# Reproducibility
 
-The scripts use standard scientific Python packages:
+Several safeguards are built into the analysis:
+
+- repeated sessions from the same participant are kept in the same CV fold
+- the primary architecture screen uses the same participants for all candidate configurations
+- feature preprocessing occurs within training folds
+- clinical variables are excluded from primary wearable models
+- the common-cohort screen and maximum-cohort validation are kept separate
+- Random Forest is used as a pre-specified nonlinear sensitivity analysis
+- participant bootstrap is used for uncertainty estimation
+- the screening score is descriptive and is not treated as a clinical endpoint
+- the final compilation script does not introduce new exploratory tests
+
+---
+
+# Recommended Public Outputs
+
+The full generated analysis directories can remain local.
+
+For a public GitHub repository, a small curated set of aggregate, non-identifiable outputs can be placed in:
 
 ```text
-numpy
-pandas
-scipy
-scikit-learn
-matplotlib
+results/
+figures/
 ```
 
-Install with:
+Examples include:
 
-```powershell
-python -m pip install numpy pandas scipy scikit-learn matplotlib
-```
+- final sensor-screen ranking
+- validation architecture summary
+- Pareto frontier table
+- final reference-target table
+- sensor-ablation figure
+- validation tradeoff figure
+- within-person modeling figure
 
-A virtual environment is recommended.
-
-Example:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install numpy pandas scipy scikit-learn matplotlib
-```
+Before publishing any generated file, verify that it contains no participant-level identifiers or restricted dataset content.
 
 ---
 
-# Key Engineering Findings
+# `.gitignore`
 
-The final analysis supports several design-level conclusions:
+The repository is configured to ignore:
 
-- Single-sensor distal-leg architectures remained competitive with multi-sensor configurations.
-- Adding more sensors did not consistently improve longitudinal performance.
-- Exact optimal placement was model-dependent rather than universal.
-- Cadence/rhythmic change was the most consistently preserved target.
-- Step-length/spatial change was more difficult to estimate.
-- Within-person normalization showed selective benefit for ankle-based step-length change rather than universal improvement.
-- Pareto analysis favored minimal architectures that balanced predictive performance and hardware burden.
+- raw WearGait-PD participant data
+- clinical metadata
+- generated analysis folders
+- virtual environments
+- Python cache files
+- credentials and environment files
 
-The central design principle is:
+Do not commit:
 
-> **Maximize longitudinal information per sensor.**
-
----
-
-# Reproducibility Notes
-
-- The main sensor comparison uses participant-level grouping to prevent leakage between repeated sessions.
-- Session 1 and session 2 from the same participant remain in the same cross-validation fold.
-- Clinical variables are excluded from the primary engineering models.
-- The primary hardware screen excludes insole sensors.
-- Reduced-sensor architectures are compared against synchronized instrumented-walkway reference measures.
-- The common-cohort screen and maximum-cohort validation are intentionally separate analyses.
-- Screening scores are descriptive ranking tools, not clinical endpoints.
-
----
-
-# Interpretation Guardrails
-
-Please use the following language when interpreting this repository:
-
-### Supported
-
-- longitudinal gait change
-- longitudinal gait-change preservation
-- minimal wearable architecture
-- sensor-ablation analysis
-- within-person change modeling
-- performance–hardware tradeoff
-
-### Not supported by this analysis
-
-- prediction of Parkinson's disease progression
-- prediction of UCL/clinical injury
-- proof that one left/right sensor location is universally optimal
-- direct longitudinal MDS-UPDRS progression
-- clinical diagnostic claims
-
----
-
-# Data Availability
-
-This repository contains analysis code only.
-
-WearGait-PD data should be obtained from the official dataset source. Raw participant data should not be committed to the public GitHub repository.
-
-Recommended `.gitignore` entries include:
-
-```gitignore
+```text
 PD Participants/
 Clinical_Metadata/
-project_*/
-*.csv
-*.tsv
-*.mat
-__pycache__/
-*.pyc
-.venv/
+.env
+.synapseConfig
+access tokens
+personal access tokens
+participant-level raw data
 ```
 
-If selected result tables or figures are intended for public release, place them in a dedicated `results/` or `figures/` directory and remove those paths from the ignore rules.
+---
+
+# Limitations
+
+This study should be interpreted within several constraints:
+
+- modest longitudinal sample size
+- controlled walking task rather than free-living monitoring
+- heterogeneous baseline medication/treatment state
+- variable paired sensor availability
+- no linked follow-up clinical table for longitudinal MDS-UPDRS change
+- no external validation cohort
+- orientation-robust magnitude features trade some directional information for deployment robustness
+- exact optimal left/right placement may depend on participant asymmetry and model choice
+
+---
+
+# Project Title
+
+Short project title:
+
+**Minimal-Sensor Parkinson's Gait Monitoring**
+
+Long-form research title:
+
+**Minimal-Sensor Wearable Architecture for Longitudinal Gait Monitoring in Parkinson's Disease: Sensor Ablation and Within-Person Change Modeling**
 
 ---
 
@@ -740,14 +1007,44 @@ If selected result tables or figures are intended for public release, place them
 Department of Biomedical Engineering  
 University of North Dakota
 
-Research interests: wearable sensing, biomechanics, digital health, medical devices, and machine learning.
+ORCID: [0009-0001-6618-0783](https://orcid.org/0009-0001-6618-0783)
+
+GitHub: [michidicicco](https://github.com/michidicicco)
+
+Repository:
+
+[Minimal-Sensor-Parkinson-s-Gait-Monitoring](https://github.com/michidicco/Minimal-Sensor-Parkinson-s-Gait-Monitoring)
 
 ---
 
-## Project Title
+# Citation
 
-**Minimal-Sensor Parkinson's Gait Monitoring**
+If you use or build on this code, please cite the repository using the metadata in:
 
-Long-form manuscript title:
+```text
+CITATION.cff
+```
 
-**Minimal-Sensor Wearable Architecture for Longitudinal Gait Monitoring in Parkinson's Disease: Sensor Ablation and Within-Person Change Modeling**
+A formal manuscript citation can be added here once the associated paper is published.
+
+---
+
+# License
+
+This repository is released under the **MIT License**.
+
+See:
+
+```text
+LICENSE
+```
+
+for the full license text.
+
+---
+
+# Acknowledgment
+
+This project analyzes the WearGait-PD dataset. The dataset authors and original data contributors should be cited according to the official WearGait-PD data-use and citation guidance.
+
+Raw WearGait-PD data are not redistributed in this repository.
